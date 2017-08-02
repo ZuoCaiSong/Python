@@ -41,4 +41,36 @@ dict2 = {"x": "a", "y": "b"}
 func(*list2, **dict2)
 
 
+#* 第二章：递归
+def fac(n):
+	if n == 1:
+		return 1
+	return n * fac(n-1)
+print fac(10)
+
+# 尾随递归
+
+def fact(n):
+	return fact_iter(n, 1)
+
+def fact_iter(num, product):
+	if num == 1:
+		return product
+	return fact_iter(num - 1,num * product)
+
+print fact(5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
