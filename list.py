@@ -66,15 +66,30 @@ print isinstance("abc",Iterable) #字符串可迭代则返回true
 
 
 #4,迭代时想获取索引,enumerate
-for i, value in enumerate(['10','11','12'])：
-	print i, value
+# for i, value in enumerate(['10','11','12'])：
+# 	print i, value
 #5 ,同时引用两个变量
 for x, y in [(1,1),(2,2),(3,3)]:
 	print x, y
 
+#4 快速生成一个列表的方式
+list3 = [x*x for x in range(1,11)]
+print list3 
 
+#还可以加一些条件
+list4 = [x*x for x in range(1,11) if x%2 == 0]
+print list4
 
+#取列表的值循环时，可以同时取多个变量
+dic1 = {'x':'y','Z':'a','B':'c'}
+list6 = [k + '=' + v for k, v in dic1.items()]
+print list6
 
+list7 = [ch.lower() for ch in list6] # 变为小写
+print list7
 
-
+# 判断一个变量的类型
+#如是不是字符串
+print isinstance('abc', str)
+print isinstance(123,str)
 
