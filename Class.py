@@ -172,4 +172,298 @@ class  MyObject(object):
 obj = MyObject(13)
 print len(obj)
 
+'''
+配合 getattr() 、 setattr() 以及 hasattr() ，我们可以直接操作一个对象的 状态:
+'''
 
+class MyObject1(object):
+	def __init__(self):
+		self.x = 9
+	def power(self):
+		return self.x * self.x 
+
+obj = MyObject1()
+print("hasattr")
+print hasattr(obj, "x") #obj有属性'x'吗?
+
+print hasattr(obj, "y") #obj有属性'y'吗?
+
+setattr(obj, 'y', 19) #设置一个属性'y',值为19
+print hasattr(obj, "y") #obj有属性'y'吗?
+
+print getattr(obj,"y")
+
+'''
+注意： 如果试图获取不存在的属性，会抛出AttributeError的错误:
+可以传入一个default参数，如果属性不存在，就返回默认值:
+'''
+
+print getattr(obj,'z', 404)
+
+# 也可以获得对象的方法:
+print hasattr(obj, 'power')
+
+fn = getattr(obj,'power')
+print fn() # 调用fn()与调用obj.power()是一样的
+
+'''
+小结: 可以直接访问（obj.x  obj.power()），尽量不要用这种方式访问属性，和方法。
+'''
+
+
+# 动态绑定方法，和属性
+
+class Student(object):
+	pass
+
+s = Student()
+s.name = 'Michael' # 动态给实例绑定一个属性
+print s.name
+
+# 给实例绑定一个方法
+def set_age(self, age):
+	self.age = age
+
+from types import MethodType
+s.set_age = MethodType(set_age, s, Student) # 给实例绑定一个方法
+
+s.set_age(25)  # 调用实例方法
+print s.age   # 测试结果
+
+'''
+但是，给一个实例绑定的方法，对另一个实例是不起作用的:只作用当前实例s。
+
+为了给所有实例都绑定方法，可以给class绑定方法:
+给class绑定方法后，所有实例均可调用:
+动态绑定允许我们在程序运行的过程中动态给class 加上功能，这在静态语言中很难实现。
+'''
+
+def set_Score(self, score):
+	self.score = score
+
+Student.set_Score = MethodType(set_Score, None, Student)
+
+s.set_Score(100)
+print s.score
+
+
+'''
+只允许对Student实例添加 name 和 age 属性。
+为了达到限制的目的，Python允许在定义class的时候，定义一个特殊的 __slots__ 变量，来限制该class能添加的属 性:
+
+使用 __slots__ 要注意， __slots__ 定义的属性仅对当前类起作用，对继承的子类是不起作用的:
+除非在子类中也定义 __slots__ ，这样，子类允许定义的属性就是自身的 __slots__ 加上父类的 __slots__ 。
+'''
+class Student(object):
+	__slots__ = ('name', 'age') # 用tuple定义只能允许绑定的属性名称
+
+s = Student()
+#s.score = 90
+# print s.score  : error: Student' object has no attribute 'score'
+
+class GraduateStudent(Student):
+	__slots__ = ("score")
+
+g = GraduateStudent()
+g.name = "xiaoming"
+print g.name
+
+
+# @property
+class Student(object):
+
+ 	def get_score(self):
+ 		return self._score
+    # 现在，对任意的Student实例进行操作，就不能随心所欲地设置score了:
+ 	def set_score(self, value):
+ 		if not isinstance(value, int):
+ 			raise ValueError('score must be an integer!')
+ 		elif value <0 or value> 100:
+ 			raise ValueError('score must between 0 ~ 100!')
+ 		else:
+ 			self.score = value
+
+#此时操作赋值为：
+s = Student()
+s.set_score(60)
+
+'''
+# Python内置 的 @property 装饰器就是负责把一个方法变成属性调用的:
+@property 的实现比较复杂，我们先考察如何使用。把一个getter方法变成属性，只需要加上 @property 就可以 了，
+此时， @property 本身又创建了另一个装饰器 @score.setter ，负责把一个setter方法变成属性赋值，
+于是，我 们就拥有一个可控的属性操作:
+
+注意到这个神奇的 @property ，我们在对实例属性操作的时候，就知道该属性很可能不是直接暴露的，而是通过gett er和setter方法来实现的。
+#还可以定义只读属性，只定义getter方法，不定义setter方法就是一个只读属性:
+
+'''
+
+class Student(object):
+
+	@property 
+	def score(self):
+		return self._score 
+
+
+	@score.setter
+	def score(self,value):
+		if not isinstance(value, int):
+			raise ValueError('score must be an integer')
+		elif value < 0 or value > 100:
+			raise ValueError('score must between 0 ~100!')
+		else:
+			self._score = value
+
+s = Student()
+s.score = 99
+print s.score
+
+'''
+还可以定义只读属性，只定义getter方法，不定义setter方法就是一个只读属性:
+'''
+class Student(object):
+	@property 
+	def birth(self):
+		return self._birth
+	@birth.setter
+	def birth(self,value):
+		self._birth = value
+
+	@property
+	def age(self):
+		return  2014 - self._birth
+#而 age 就是一个只读属性，因为 age 可以根据 birth 和当前时间计算出来。
+
+
+# 重新定义打印对象,只需要定义好 __str__() 方法，返回一个好看的字符串就可以了:
+
+'''
+因为直接显示变量s 调用的不是 __str__() ，而是 __repr__() ，
+两者的区别是 __str__() 返回用户看到的字符 串，
+而 __repr__() 返回程序开发者看到的字符串，
+也就是说， __repr__() 是为调试服务的。
+
+解决办法是再定义一个 __repr__() 。
+但是通常 __str__() 和 __repr__() 代码都是一样的，
+所以，有个偷懒的写 法: __repr__ = __str__
+'''
+class Student(object):
+	def  __init__(self, name):
+		self.name = name
+	def __str__(self):
+		return 'Student object (name: %s)' % self.name
+	__repr__ = __str__
+Student('Michael')
+print Student('Michael')
+
+
+
+print  "------------  __iter__ -------------"
+'''
+如果一个类想被用于 for ... in 循环，类似list或tuple那样，就必须实现一个 __iter__() 方法，该方法返回一个迭 代对象，
+然后，Python的for循环就会不断调用该迭代对象的 next() 方法拿到循环的下一个值，直到遇到StopIterati on错误时退出循环
+'''
+class Fib(object):
+	def __init__(self):
+		self.a, self.b = 0, 1 # 初始化两个计数器a，b
+
+	def __iter__(self):
+		return self #实力本身就是迭代对象，对返回自己
+
+	def next(self):
+		self.a, self.b = self.b, self.a + self.b # 计算下一个值
+		if self.a > 1000: #退出循环条件
+			raise StopIteration();
+		return self.a
+
+
+for n in Fib():
+	print n
+
+print  "------------  __getitem__  -------------"
+
+#Fib实例虽然能作用于for循环，看起来和list有点像，但是，把它当成list来使用还是不行，比如，取第5个元素:
+#要表现得像list那样按照下标取出元素，需要实现 __getitem__() 方法:
+class Fib(object):
+	def __getitem__(self, n):
+		a, b = 1, 1
+		for x in range(n):
+			a, b = b, a + b
+		return a
+f = Fib()
+print f[5]
+
+
+'''
+正常情况下，当我们调用类的方法或属性时，如果不存在，就会报错。比如定义 Student 类:
+ 
+'''
+print  "  __getattr__  "
+
+class Student(object):
+	def __init__(self):
+		self.name = 'Michael'
+s = Student()
+print s.name
+
+'''
+Python还有另一个机制，那就是写一个 __getattr__() 方
+法，动态返回一个属性。修改如下:
+'''
+class Student100(object):
+	def __init__(self):
+		self.name = 'Michael'
+
+	def  __getattr__(self, attr):
+		if attr == 'score':
+			return 99
+'''
+当调用不存在的属性时，
+比如 score ，Python解释器会试图调用 __getattr__(self, 'score') 来尝试获得属性，
+这 样，我们就有机会返回 score 的值:
+
+注意：
+只有在没有找到属性的情况下，才调用 __getattr__ ，已有的属性，比如 name ，不会在 __getattr__ 中查 找。
+此外，注意到任意调用如 s.abc 都会返回 None ，这是因为我们定义的 __getattr__ 默认返回就是 None 。
+要让class 只响应特定的几个属性，我们就要按照约定，抛出 AttributeError 的错误
+'''
+
+s = Student100()
+print s.name
+print s.score
+
+print s.shdfs
+
+
+
+
+print "----------------- __call__---------------"
+'''
+一个对象实例可以有自己的属性和方法，当我们调用实例方法时，我们用 instance.method() 来调用。能不能直接在 实例本身上调用呢?类似 instance() ?在Python中，答案是肯定的。
+任何类，只需要定义一个 __call__() 方法，就可以直接对实例进行调用。请看示例:
+'''
+
+
+class StudentCall(object):
+	def __init__(self,name):
+		self.name = name
+
+	def __call__(self):
+		print("my name is %s" % self.name)
+
+
+s =  StudentCall("jeck")
+print s()
+
+'''
+怎么判断一个变量是对象还是函数呢
+
+
+其实，更多的时候，我们需要判断一个对象是否能被调用，能被调用 的对象就是一个 Callable 对象，比如函数和我们上面定义的带有 __call()__ 的类实例:
+
+通过 callable() 函数，我们就可以判断一个对象是否是“可调用”对象。
+'''
+
+print callable(s)  # true
+
+print callable('str') #false
