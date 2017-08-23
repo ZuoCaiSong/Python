@@ -16,4 +16,17 @@ list_num = [1,2,3,4]
 
 list = [i*100 + j*10 + k for i in list_num for j in list_num for k in list_num if (j != i and k != j and k != i)]   
 
-print (list)          
+print (list)  
+
+
+#参考方法 ，设置最大，最小值
+num = 123
+
+print num %10
+
+b =  num %100 
+
+c = b//10 # //  2.7取整  ,3.0 取小数
+
+
+print b, c, b/10
